@@ -31,6 +31,8 @@ const MARCAS_CHOICES = [
   "Asus",
   "Razer",
   "Logitech",
+  "Apple",
+  "Xiaomi",
   "Otra",
 ];
 

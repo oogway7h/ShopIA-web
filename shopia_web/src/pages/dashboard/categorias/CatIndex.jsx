@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
-// Asumo que tus componentes de tabla y diálogo están en estas rutas
 import SmartTable from "../../../components/tabla/SmartTable.jsx";
 import ConfirmDialog from "../../../components/ui/dialogo.jsx";
-// Importamos tu cliente API real
 import { api } from "../../../services/apiClient.js";
 import { useNavigate } from "react-router-dom";
 
@@ -35,7 +33,6 @@ export default function CategoriasIndexPage() {
 
   //navegar a crear
   function onCreate() {
-    // Asumo que esta es la ruta a tu componente de creación de categorías
     navigate("/dashboard/categorias/create");
   }
 
@@ -66,7 +63,7 @@ export default function CategoriasIndexPage() {
       });
   }
 
-  // Mostrar las categorias con la tabla smaer
+
   const rows = categorias.map(c => ({
     id: c.id,
     nombre: c.nombre,

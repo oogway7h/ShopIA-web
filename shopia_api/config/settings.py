@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     # App
     'apps.usuarios',
     'apps.productos',
+    'apps.ventas'
 ]
 
 AUTH_USER_MODEL = 'usuarios.Usuario'
@@ -212,6 +213,7 @@ cloudinary.config(
     api_secret=config('CLOUDINARY_API_SECRET'),
 )
 
-# En settings.py
+# Stripe Configuration
 STRIPE_PUBLISHABLE_KEY = config('STRIPE_PUBLISHABLE_KEY')
 STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY')
+FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:5173')

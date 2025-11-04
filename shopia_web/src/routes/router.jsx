@@ -24,42 +24,48 @@ import NotificacionEditPage from "../pages/dashboard/notificaciones/edit.jsx";
 import ClientesPage from "../pages/dashboard/clientes/index.jsx";
 import ClienteCreatePage from "../pages/dashboard/clientes/create.jsx";
 import ClienteEditPage from "../pages/dashboard/clientes/edit.jsx";
+import VentaLogPage from "../pages/dashboard/venta/venta.jsx";
 
-//############cliente routes
 import PerfilPage from "../pages/ecommerce/cliente/perfil.jsx";
 import NotificacionPage from "../pages/ecommerce/cliente/Notificaciones.jsx";
 import ComprasPage from "../pages/ecommerce/cliente/Compras.jsx";
 
+import CatalogoProductos from "../pages/ecommerce/tienda/Catalogo.jsx";
+import ProductoDetallePage from "../pages/ecommerce/tienda/VistaProducto.jsx";
+import CategoriaProductos from "../pages/ecommerce/tienda/CategoriaProductos.jsx";
+import Checkout from "../pages/ecommerce/tienda/Checkout.jsx";
+import ResumenVenta from "../pages/ecommerce/tienda/ResumenVenta.jsx";
+import CompraExitosa from "../pages/ecommerce/tienda/CompraExitosa.jsx";
+
 import ErrorBoundaryPage from "../pages/ErrorBoundaryPage.jsx";
 import ProtectedRoute from "../components/routing/ProtectedRoute.jsx";
 
-//productos
 import ProductosIndexPage from "../pages/dashboard/productos/ProdIndex.jsx";
 import ProductoCreatePage from "../pages/dashboard/productos/create.jsx";
 import ProductoEditPage from "../pages/dashboard/productos/edit.jsx";
 
-
-//categorias
 import CategoriaCreatePage from "../pages/dashboard/categorias/create.jsx";
 import CategoriaEditPage from "../pages/dashboard/categorias/edit.jsx";
 import CategoriasIndexPage from "../pages/dashboard/categorias/CatIndex.jsx";
 
+import MetodosPagoIndexPage from "../pages/dashboard/pagos/GestionPagos.jsx";
+import MetodoPagoCreatePage from "../pages/dashboard/pagos/create.jsx";
+import MetodoPagoEditPage from "../pages/dashboard/pagos/edit.jsx";
 
-//catalogo
-import CatalogoProductos from "../pages/ecommerce/tienda/Catalogo.jsx"
-import ProductoDetallePage from "../pages/ecommerce/tienda/VistaProducto.jsx";
-import CategoriaProductos from "../pages/ecommerce/tienda/CategoriaProductos.jsx";
+import ErrorBoundary from "../components/ErrorBoundary";
 
-const router = createBrowserRouter([
+export const router = createBrowserRouter([
   {
     path: "/",
-    element: <MainLayout />,
-    errorElement: <ErrorBoundaryPage />,
+    element: (
+      <ErrorBoundary>
+        <MainLayout />
+      </ErrorBoundary>
+    ),
     children: [
       { index: true, element: <CatalogoProductos /> },
       { path: "login", element: <Login /> },
       { path: "register", element: <Register /> },
-      // Cambia aquí:
       { path: "categoria/:id", element: <CategoriaProductos /> },
       { path: "producto/:id", element: <ProductoDetallePage /> }
     ],
@@ -81,25 +87,22 @@ const router = createBrowserRouter([
       { path: "usuarios/bitacora", element: <BitacoraPage /> },
       { path: "/dashboard/usuarios/create", element: <UsuarioCreatePage /> },
       { path: "/dashboard/usuarios/edit/:id", element: <UsuarioEditPage /> },
-      // Rutas para notificaciones
       { path: "notificaciones", element: <NotificacionesPage /> },
       { path: "notificaciones/create", element: <NotificacionCreatePage /> },
       { path: "notificaciones/edit/:id", element: <NotificacionEditPage /> },
       { path: "clientes", element: <ClientesPage /> },
       { path: "clientes/create", element: <ClienteCreatePage /> },
       { path: "clientes/edit/:id", element: <ClienteEditPage /> },
-
-      
-      //rutas para categorias
       {path: "categorias/create",element:<CategoriaCreatePage/>},
       {path: "categorias/edit/:id",element:<CategoriaEditPage/>},
       {path:"categorias",element:<CategoriasIndexPage/>},
-
-      //rutas para productos
       {path:"productos",element:<ProductosIndexPage/>},
       {path:"productos/create",element:<ProductoCreatePage/>},
       {path: "productos/edit/:id", element:<ProductoEditPage/>},
-
+      {path:"pagos",element:<MetodosPagoIndexPage/>},
+      {path:"pagos/create",element:<MetodoPagoCreatePage/>},
+      {path:"pagos/edit/:id",element:<MetodoPagoEditPage/>},
+      { path: "ventas", element: <VentaLogPage /> }
     ],
   },
   {
@@ -114,7 +117,9 @@ const router = createBrowserRouter([
       { path: "perfil", element: <PerfilPage /> },
       { path: "notificaciones", element: <NotificacionPage /> },
       { path: "compras", element: <ComprasPage /> },
-      
+      { path: "checkout", element: <Checkout /> },
+      { path: "resumen-venta/:id", element: <ResumenVenta /> },
+      { path: "compra-exitosa", element: <CompraExitosa /> }
     ],
   },
   {
@@ -124,4 +129,4 @@ const router = createBrowserRouter([
   { path: "*", element: <ErrorBoundaryPage /> },
 ]);
 
-export { router };
+export default router;

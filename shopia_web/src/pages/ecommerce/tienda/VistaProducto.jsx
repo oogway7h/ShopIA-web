@@ -1,14 +1,21 @@
 import React, { useState, useEffect } from "react";
-import { api } from "../../../services/apiClient.js"; 
+import { api } from "../../../services/apiClient";
 import { useNavigate, useParams } from "react-router-dom";
+import { useAuth } from "../../../hooks/useAuth"; 
+import ConfirmDialog from "../../../components/ui/dialogo";
 
 export default function ProductoDetallePage() {
   const [producto, setProducto] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [imgIndex, setImgIndex] = useState(0);
+  const [cantidad, setCantidad] = useState(1);
+  const [showDialog, setShowDialog] = useState(false);
+  const [agregandoCarrito, setAgregandoCarrito] = useState(false);
   const navigate = useNavigate();
   const { id } = useParams(); 
+
+  const { isAuthenticated, isClient } = useAuth();
 
   useEffect(() => {
     setLoading(true);
@@ -31,7 +38,7 @@ export default function ProductoDetallePage() {
     return (
       <div className="flex items-center justify-center p-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-        <span className="ml-3 text-gray-600 dark:text-gray-300">Cargando Catálogo...</span>
+        <span className="ml-3 text-gray-600 dark:text-gray-300">Cargando producto...</span>
       </div>
     );
   }
@@ -73,6 +80,39 @@ export default function ProductoDetallePage() {
   const precioFinalFormateado = `Bs${precioFinal.toFixed(2)}`;
   const hayStock = producto.stock > 0;
 
+  const handleAgregarCarrito = async () => {
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+    
+    if (!isClient()) {
+      setShowDialog(true);
+      return;
+    }
+
+    try {
+      setAgregandoCarrito(true);
+      await api.post('/api/ventas/carrito/agregar-producto/', {
+        producto_id: producto.id,
+        cantidad: cantidad
+      });
+      setCantidad(1);
+      alert('Producto agregado al carrito');
+    } catch (error) {
+      alert('Error al agregar al carrito');
+      console.error(error);
+    } finally {
+      setAgregandoCarrito(false);
+    }
+  };
+
+  const handleCantidadChange = (nuevaCantidad) => {
+    if (nuevaCantidad >= 1 && nuevaCantidad <= producto.stock) {
+      setCantidad(nuevaCantidad);
+    }
+  };
+
   return (
     <div className="bg-gray-50 min-h-screen">
       <div className="container mx-auto p-4 md:p-8">
@@ -90,11 +130,12 @@ export default function ProductoDetallePage() {
 
         <div className="bg-white rounded-2xl border border-gray-200 shadow-xl overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-2">
-            {/* Carrusel de imágenes */}
-            <div className="p-4 md:p-6 bg-gray-100 flex flex-col items-center">
-              <div className="relative w-full flex justify-center items-center">
+            
+            {/* Carrusel de imágenes mejorado */}
+            <div className="p-6 md:p-8 bg-gray-100 flex flex-col items-center">
+              <div className="relative w-full max-w-md mx-auto bg-white rounded-xl p-4 shadow-sm">
                 <img
-                  className="w-full h-auto max-h-[500px] object-contain rounded-lg"
+                  className="w-full h-80 md:h-96 object-contain rounded-lg"
                   src={imagenes[imgIndex] || "https://placehold.co/600x400/e0e0e0/909090?text=Sin+Imagen"}
                   alt={`Imagen de ${producto.nombre}`}
                 />
@@ -102,42 +143,51 @@ export default function ProductoDetallePage() {
                   <>
                     <button
                       onClick={() => setImgIndex((imgIndex - 1 + totalImgs) % totalImgs)}
-                      className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow"
+                      className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white rounded-full p-2 shadow-lg transition-all duration-200"
                       aria-label="Anterior imagen"
                     >
-                      <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                       </svg>
                     </button>
                     <button
                       onClick={() => setImgIndex((imgIndex + 1) % totalImgs)}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white rounded-full p-2 shadow-lg transition-all duration-200"
                       aria-label="Siguiente imagen"
                     >
-                      <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
                     </button>
                   </>
                 )}
               </div>
-              {/* Miniaturas opcionales */}
+              
+              {/* Miniaturas mejoradas */}
               {totalImgs > 1 && (
-                <div className="flex gap-2 mt-4 justify-center">
+                <div className="flex gap-3 mt-6 justify-center flex-wrap max-w-md">
                   {imagenes.map((img, idx) => (
                     <button
                       key={idx}
                       onClick={() => setImgIndex(idx)}
-                      className={`border-2 rounded-md ${imgIndex === idx ? "border-blue-500" : "border-transparent"}`}
+                      className={`border-2 rounded-lg overflow-hidden transition-all duration-200 ${
+                        imgIndex === idx 
+                          ? "border-blue-500 ring-2 ring-blue-200" 
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
                     >
-                      <img src={img} alt="" className="h-14 w-14 object-cover rounded" />
+                      <img 
+                        src={img} 
+                        alt="" 
+                        className="h-16 w-16 object-contain bg-white p-1" 
+                      />
                     </button>
                   ))}
                 </div>
               )}
             </div>
 
-            {/* ...resto del código igual... */}
+            {/* Información del producto */}
             <div className="p-6 md:p-10 flex flex-col">
               <span className="text-sm font-medium text-blue-600 mb-2">
                 {producto.categoria?.nombre || "Categoría"}
@@ -170,17 +220,58 @@ export default function ProductoDetallePage() {
                     ? `${producto.stock} unidades disponibles`
                     : 'Producto Agotado'}
                 </p>
+                
+                {/* Selector de cantidad */}
+                {hayStock && (
+                  <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+                    <span className="text-sm font-medium text-gray-700">Cantidad:</span>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => handleCantidadChange(cantidad - 1)}
+                        disabled={cantidad <= 1}
+                        className="w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        -
+                      </button>
+                      <span className="text-lg font-medium w-12 text-center">
+                        {cantidad}
+                      </span>
+                      <button
+                        onClick={() => handleCantidadChange(cantidad + 1)}
+                        disabled={cantidad >= producto.stock}
+                        className="w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                )}
+                
                 <button
-                  disabled={!hayStock}
+                  onClick={handleAgregarCarrito}
+                  disabled={!hayStock || agregandoCarrito}
                   className="w-full px-6 py-4 bg-blue-600 text-white text-lg font-bold rounded-xl shadow-lg hover:bg-blue-700 transition-colors duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
-                  Añadir al carrito
+                  {agregandoCarrito ? "Agregando..." : "Añadir al carrito"}
                 </button>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={showDialog}
+        title="Acción de Cliente"
+        message="Solo los usuarios con rol de cliente pueden agregar productos al carrito. ¿Deseas iniciar sesión como cliente?"
+        confirmText="Iniciar Sesión"
+        cancelText="Cancelar"
+        onConfirm={() => {
+          setShowDialog(false);
+          navigate("/login");
+        }}
+        onCancel={() => setShowDialog(false)}
+      />
     </div>
   );
 }

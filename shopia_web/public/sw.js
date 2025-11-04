@@ -1,4 +1,4 @@
-const CACHE_NAME = 'shopia-v1.0.1';
+const CACHE_NAME = 'shopia-v1.0.6';
 const urlsToCache = [
   '/',
   '/manifest.json',

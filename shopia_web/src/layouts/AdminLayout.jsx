@@ -22,6 +22,15 @@ const menu = [
       {nombre:"Productos", ruta:"productos"},
     ]
   },
+
+  {
+    grupo:"Gestion de Ventas",
+    icono:"💰",
+    opciones:[
+      {nombre:"Pagos",ruta:"/dashboard/pagos"},
+      {nombre:"Ventas", ruta:"/dashboard/ventas"}
+    ]
+  },
 ];
 
 export default function AdminLayout() {

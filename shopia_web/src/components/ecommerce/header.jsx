@@ -29,15 +29,14 @@ function ListItem({ children, to }) {
   );
 }
 
-function Header() {
+function Header({ setCarritoAbierto, reloadCart }) {
   const [open, setOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const { user, loading, logout, isClient, isAdmin, isAuthenticated } =
-    useAuth();
-
-  const [categorias, setCategorias] = useState([]);
-  const [loadingCategorias, setLoadingCategorias] = useState(true);
-  const navRef = useRef(null);
+  const [categorias, setCategorias] = useState([]); // AGREGADO
+  const [loadingCategorias, setLoadingCategorias] = useState(false); // AGREGADO
+  const { user, loading, logout, isClient, isAdmin, isAuthenticated } = useAuth();
+  const navRefPC = useRef(null);      // Para PC
+  const navRefMobile = useRef(null);  // Para móvil
 
   useEffect(() => {
     setLoadingCategorias(true);
@@ -58,7 +57,6 @@ function Header() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Cierra el menú si se redimensiona la ventana a tamaño de escritorio
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth >= 1024) {
@@ -69,11 +67,51 @@ function Header() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const scrollNav = (dir) => {
-    const nav = navRef.current;
+  // Función separada para cada dispositivo
+  const scrollNavPC = (dir) => {
+    const nav = navRefPC.current;
     if (!nav) return;
-    const scrollAmount = nav.offsetWidth * 0.7;
-    nav.scrollBy({ left: dir * scrollAmount, behavior: "smooth" });
+    
+    const itemWidth = 120;
+    const currentScroll = nav.scrollLeft;
+    const maxScroll = nav.scrollWidth - nav.clientWidth;
+    
+    if (dir === 1) {
+      if (currentScroll >= maxScroll) {
+        nav.scrollTo({ left: 0, behavior: "smooth" });
+      } else {
+        nav.scrollBy({ left: itemWidth * 2, behavior: "smooth" });
+      }
+    } else {
+      if (currentScroll <= 0) {
+        nav.scrollTo({ left: maxScroll, behavior: "smooth" });
+      } else {
+        nav.scrollBy({ left: -itemWidth * 2, behavior: "smooth" });
+      }
+    }
+  };
+
+  const scrollNavMobile = (dir) => {
+    const nav = navRefMobile.current;
+    if (!nav) return;
+    
+    const itemWidth = 120;
+    const currentScroll = nav.scrollLeft;
+    const maxScroll = nav.scrollWidth - nav.clientWidth;
+    
+    if (dir === 1) {
+      if (currentScroll >= maxScroll) {
+        nav.scrollTo({ left: 0, behavior: "smooth" });
+      } else {
+        nav.scrollBy({ left: itemWidth * 2, behavior: "smooth" });
+      }
+    } else {
+      if (currentScroll <= 0) {
+        nav.scrollTo({ left: maxScroll, behavior: "smooth" });
+      } else {
+        nav.scrollBy({ left: -itemWidth * 2, behavior: "smooth" });
+      }
+    }
   };
 
   // Mostrar loading mientras se verifica autenticación
@@ -165,13 +203,17 @@ function Header() {
               <>
                 {/* Usuario logueado como cliente */}
                 <div className="hidden lg:flex items-center gap-4">
-                  <CartButton itemCount={3} />
+                  <CartButton onClick={() => setCarritoAbierto(true)} reload={reloadCart} />
                   <div className="h-6 w-px bg-gray-200"></div>
                   <UserMenu user={user} onLogout={logout} />
                 </div>
 
                 {/* Carrito visible en móvil para clientes */}
-                <CartButton itemCount={3} className="lg:hidden" />
+                <CartButton
+                  onClick={() => setCarritoAbierto(true)}
+                  className="lg:hidden"
+                  reload={reloadCart}
+                />
               </>
             ) : !isAuthenticated ? (
               <>
@@ -215,58 +257,23 @@ function Header() {
           </div>
         </div>
 
-        {/* --- BARRA DE CATEGORÍAS --- */}
-        {/* PC: centrado, sin botones */}
-        <nav className="hidden lg:flex items-center h-12 border-t border-gray-200 select-none justify-center">
-          <div className="max-w-2xl w-full flex justify-center">
-            {loadingCategorias ? (
-              <div className="flex items-center gap-2 animate-pulse px-4">
-                <div className="h-4 w-20 bg-gray-200 rounded"></div>
-                <div className="h-4 w-20 bg-gray-200 rounded"></div>
-                <div className="h-4 w-20 bg-gray-200 rounded"></div>
-              </div>
-            ) : (
-              <ul className="flex items-center gap-4 text-base w-full justify-center">
-                <ListItem to="/">Todos</ListItem>
-                {categorias.map((categoria) => (
-                  <ListItem key={categoria.id} to={`/categoria/${categoria.id}`}>
-                    {categoria.nombre}
-                  </ListItem>
-                ))}
-              </ul>
-            )}
-          </div>
-        </nav>
-
-        {/* MÓVIL: botones y padding */}
-        <nav className="flex lg:hidden items-center h-12 border-t border-gray-200 select-none relative">
-          {/* Botón izquierda con padding */}
+        {/* --- BARRA DE CATEGORÍAS PC --- */}
+        <nav className="hidden lg:flex items-center h-12 border-t border-gray-200 select-none relative">
           <div className="pl-2 flex items-center h-full">
             <button
-              onClick={() => scrollNav(-1)}
-              className="h-8 w-8 flex items-center justify-center rounded-full bg-white shadow"
+              onClick={() => scrollNavPC(-1)}  // Cambia aquí
+              className="h-8 w-8 flex items-center justify-center rounded-full bg-white shadow hover:shadow-md"
               aria-label="Ver categorías anteriores"
               type="button"
             >
-              <svg
-                className="w-5 h-5 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 19l-7-7 7-7"
-                />
+              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
           </div>
 
-          {/* Lista de categorías con padding horizontal para los botones */}
           <div
-            ref={navRef}
+            ref={navRefPC}  // Cambia aquí
             className="flex-1 flex overflow-x-hidden scrollbar-hide px-2"
             style={{ scrollBehavior: "smooth" }}
           >
@@ -277,7 +284,7 @@ function Header() {
                 <div className="h-4 w-20 bg-gray-200 rounded"></div>
               </div>
             ) : (
-              <ul className="flex items-center gap-4 text-base w-full">
+              <ul className="flex items-center gap-4 text-base whitespace-nowrap">
                 <ListItem to="/">Todos</ListItem>
                 {categorias.map((categoria) => (
                   <ListItem key={categoria.id} to={`/categoria/${categoria.id}`}>
@@ -288,159 +295,195 @@ function Header() {
             )}
           </div>
 
-          {/* Botón derecha con padding */}
           <div className="pr-2 flex items-center h-full">
             <button
-              onClick={() => scrollNav(1)}
-              className="h-8 w-8 flex items-center justify-center rounded-full bg-white shadow"
+              onClick={() => scrollNavPC(1)}  // Cambia aquí
+              className="h-8 w-8 flex items-center justify-center rounded-full bg-white shadow hover:shadow-md"
               aria-label="Ver más categorías"
               type="button"
             >
-              <svg
-                className="w-5 h-5 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5l7 7-7 7"
-                />
+              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </button>
           </div>
         </nav>
-      </div>
 
-      {/* --- MENÚ MÓVIL (Overlay, solo visible si open=true) --- */}
-      {open && (
-        <div className="fixed lg:hidden top-16 left-0 w-full bg-white shadow-lg z-50 transition-transform duration-300 ease-in-out">
-          <div className="p-4 border-t border-gray-200">
-            {/* Acciones según estado de autenticación */}
-            <div className="border-t border-gray-200 pt-4 flex justify-center">
-              {isAuthenticated &&
-                typeof isAdmin === "function" &&
-                isAdmin() && (
-                  <div className="block">
-                    <Link
-                      to="/dashboard"
-                      className="px-4 py-2 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700 transition"
-                    >
-                      Volver al panel
-                    </Link>
-                  </div>
-                )}
-              {isAuthenticated && isClient() ? (
-                // Cliente logueado - Menú móvil
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                    <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-white font-bold">
-                      {user?.nombre ? user.nombre.charAt(0).toUpperCase() : "U"}
+        {/* --- BARRA DE CATEGORÍAS MÓVIL --- */}
+        <nav className="flex lg:hidden items-center h-12 border-t border-gray-200 select-none relative">
+          <div className="pl-2 flex items-center h-full">
+            <button
+              onClick={() => scrollNavMobile(-1)}  // Cambia aquí
+              className="h-8 w-8 flex items-center justify-center rounded-full bg-white shadow"
+              aria-label="Ver categorías anteriores"
+              type="button"
+            >
+              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+          </div>
+
+          <div
+            ref={navRefMobile}  // Cambia aquí
+            className="flex-1 flex overflow-x-hidden scrollbar-hide px-2"
+            style={{ scrollBehavior: "smooth" }}
+          >
+            {loadingCategorias ? (
+              <div className="flex items-center gap-2 animate-pulse px-4">
+                <div className="h-4 w-20 bg-gray-200 rounded"></div>
+                <div className="h-4 w-20 bg-gray-200 rounded"></div>
+                <div className="h-4 w-20 bg-gray-200 rounded"></div>
+              </div>
+            ) : (
+              <ul className="flex items-center gap-4 text-base whitespace-nowrap">
+                <ListItem to="/">Todos</ListItem>
+                {categorias.map((categoria) => (
+                  <ListItem key={categoria.id} to={`/categoria/${categoria.id}`}>
+                    {categoria.nombre}
+                  </ListItem>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          <div className="pr-2 flex items-center h-full">
+            <button
+              onClick={() => scrollNavMobile(1)}  // Cambia aquí
+              className="h-8 w-8 flex items-center justify-center rounded-full bg-white shadow"
+              aria-label="Ver más categorías"
+              type="button"
+            >
+              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+        </nav>
+
+        {/* --- MENÚ MÓVIL --- */}
+        {open && (
+          <div className="fixed lg:hidden top-16 left-0 w-full bg-white shadow-lg z-50 transition-transform duration-300 ease-in-out">
+            <div className="p-4 border-t border-gray-200">
+              <div className="border-t border-gray-200 pt-4 flex justify-center">
+                {isAuthenticated &&
+                  typeof isAdmin === "function" &&
+                  isAdmin() && (
+                    <div className="block">
+                      <Link
+                        to="/dashboard"
+                        className="px-4 py-2 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700 transition"
+                      >
+                        Volver al panel
+                      </Link>
                     </div>
-                    <div>
-                      <p className="font-semibold text-gray-900 text-sm">
-                        {user?.nombre_completo ||
-                          `${user?.nombre || ""} ${
-                            user?.apellido || ""
-                          }`.trim() ||
-                          "Usuario"}
-                      </p>
-                      <p className="text-xs text-gray-500 truncate">
-                        {user?.correo}
-                      </p>
+                  )}
+                {isAuthenticated && isClient() ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                      <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-white font-bold">
+                        {user?.nombre ? user.nombre.charAt(0).toUpperCase() : "U"}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-900 text-sm">
+                          {user?.nombre_completo ||
+                            `${user?.nombre || ""} ${user?.apellido || ""}`.trim() ||
+                            "Usuario"}
+                        </p>
+                        <p className="text-xs text-gray-500 truncate">
+                          {user?.correo}
+                        </p>
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="grid grid-cols-2 gap-2">
-                    <a
-                      href="/cliente/perfil"
-                      className="flex items-center gap-2 p-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md"
-                    >
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
+                    <div className="grid grid-cols-2 gap-2">
+                      <a
+                        href="/cliente/perfil"
+                        className="flex items-center gap-2 p-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md"
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                        />
-                      </svg>
-                      Mi Perfil
-                    </a>
-                    <a
-                      href="/cliente/compras"
-                      className="flex items-center gap-2 p-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md"
-                    >
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                          />
+                        </svg>
+                        Mi Perfil
+                      </a>
+                      <a
+                        href="/cliente/compras"
+                        className="flex items-center gap-2 p-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md"
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-                        />
-                      </svg>
-                      Mis Compras
-                    </a>
-                    <a
-                      href="/cliente/notificaciones"
-                      className="flex items-center gap-2 p-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md"
-                    >
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                          />
+                        </svg>
+                        Mis Compras
+                      </a>
+                      <a
+                        href="/cliente/notificaciones"
+                        className="flex items-center gap-2 p-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md"
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15 17h5l-5-5V9a6 6 0 10-12 0v3l-5 5h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                        />
-                      </svg>
-                      Notificaciones
-                    </a>
-                  </div>
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15 17h5l-5-5V9a6 6 0 10-12 0v3l-5 5h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                          />
+                        </svg>
+                        Notificaciones
+                      </a>
+                    </div>
 
-                  <button
-                    onClick={logout}
-                    className="w-full flex items-center justify-center gap-2 p-3 text-sm text-red-600 bg-red-50 hover:bg-red-100 rounded-md font-medium"
-                  >
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                    <button
+                      onClick={logout}
+                      className="w-full flex items-center justify-center gap-2 p-3 text-sm text-red-600 bg-red-50 hover:bg-red-100 rounded-md font-medium"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                      />
-                    </svg>
-                    Cerrar Sesión
-                  </button>
-                </div>
-              ) : !isAuthenticated ? (
-                // Usuario no logueado
-                <AuthButtons className="flex gap-3" />
-              ) : null}
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                        />
+                      </svg>
+                      Cerrar Sesión
+                    </button>
+                  </div>
+                ) : !isAuthenticated ? (
+                  <AuthButtons className="flex gap-3" />
+                ) : null}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </header>
   );
 }
