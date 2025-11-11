@@ -8,6 +8,7 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.views import APIView
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter
+from .filters import ProductoFilter
 
 class CategoriaViewSet(viewsets.ModelViewSet):
     """
@@ -29,6 +30,8 @@ class ProductoViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter]
     filterset_fields = ['categoria']
     search_fields = ['nombre', 'marca', 'descripcion']
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filterset_class = ProductoFilter 
     
     def create(self, request, *args, **kwargs):
         return super().create(request, *args, **kwargs)
@@ -70,6 +73,7 @@ class CatalogoView(APIView):
         # Trae todos los productos con sus imágenes en una sola consulta
         productos_por_categoria = (
             Producto.objects
+            .filter(estado=True)
             .select_related('categoria')
             .prefetch_related('imagenes')
             .order_by('categoria_id', '-fecha_creacion')

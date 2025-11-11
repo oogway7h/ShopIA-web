@@ -38,7 +38,7 @@ export default function MetodoPagoCreatePage() {
       
       <MetodosPagoForm
         onSubmit={handleSubmit}
-        onCancel={() => navigate("/dashboard/metodos-pago")} // Ajusta la ruta
+        onCancel={() => navigate("/dashboard/pagos")} 
         loading={loading}
       />
     </div>

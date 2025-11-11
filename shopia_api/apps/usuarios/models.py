@@ -62,6 +62,15 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
     token_recuperacion = models.CharField(max_length=100, null=True, blank=True)
     token_expira = models.DateTimeField(null=True, blank=True)
 
+    # Token FCM para notificaciones push
+    fcm_token = models.CharField(
+        max_length=255, 
+        null=True, 
+        blank=True,
+        help_text="Token de Firebase Cloud Messaging para notificaciones push"
+    )
+    fcm_token_actualizado = models.DateTimeField(null=True, blank=True)
+
     USERNAME_FIELD = 'correo'
     REQUIRED_FIELDS = []  
     objects = UsuarioManager()

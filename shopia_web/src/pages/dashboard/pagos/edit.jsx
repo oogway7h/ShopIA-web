@@ -89,7 +89,7 @@ export default function MetodoPagoEditPage() {
       <MetodosPagoForm
         initialMetodoPago={initialData}
         onSubmit={handleSubmit}
-        onCancel={() => navigate("/dashboard/metodos-pago")}
+        onCancel={() => navigate("/dashboard/pagos")}
         loading={loading}
       />
     </div>

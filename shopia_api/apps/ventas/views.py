@@ -441,3 +441,107 @@ class VentaViewSet(viewsets.ReadOnlyModelViewSet):
                 {"detail": f"Error al confirmar pago: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+    @action(detail=True, methods=['post'], url_path='crear-payment-intent-mobile')
+    def crear_payment_intent_mobile(self, request, pk=None):
+        """Crea un Payment Intent de Stripe para pagos nativos en móvil"""
+        venta = self.get_object()
+
+        if venta.usuario != request.user:
+            return response.Response(
+                {"detail": "No tienes permiso para pagar esta venta."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        if venta.estado != 'PENDIENTE':
+            return response.Response(
+                {"detail": "Esta venta ya no está pendiente de pago."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            # Crear Payment Intent
+            payment_intent = stripe.PaymentIntent.create(
+                amount=int(float(venta.monto_total) * 100),  # Convertir a centavos
+                currency='usd',
+                metadata={
+                    'venta_id': venta.id,
+                    'usuario': venta.usuario.correo,
+                },
+                automatic_payment_methods={
+                    'enabled': True,
+                },
+            )
+
+            # Guardar el payment_intent_id en el pago
+            pago = venta.pagos.first()
+            if pago:
+                pago.transaccion_id = payment_intent.id
+                pago.save()
+
+            return response.Response({
+                'client_secret': payment_intent.client_secret,
+                'payment_intent_id': payment_intent.id,
+            })
+
+        except stripe.error.StripeError as e:
+            return response.Response(
+                {"detail": f"Error de Stripe: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        except Exception as e:
+            return response.Response(
+                {"detail": f"Error al crear payment intent: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+    @action(detail=True, methods=['post'], url_path='confirmar-pago-mobile')
+    def confirmar_pago_mobile(self, request, pk=None):
+        """Confirma el pago después de completar el Payment Intent en móvil"""
+        venta = self.get_object()
+        payment_intent_id = request.data.get('payment_intent_id')
+
+        if not payment_intent_id:
+            return response.Response(
+                {'error': 'Se requiere payment_intent_id'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            # Verificar el Payment Intent en Stripe
+            payment_intent = stripe.PaymentIntent.retrieve(payment_intent_id)
+
+            if payment_intent.status == 'succeeded':
+                # Actualizar el estado de la venta
+                venta.estado = 'PAGADA'
+                venta.save()
+
+                # Actualizar o crear el pago
+                pago = venta.pagos.first()
+                if pago:
+                    pago.transaccion_id = payment_intent_id
+                    pago.fecha_pago = timezone.now()
+                    pago.save()
+
+                return response.Response({
+                    'message': 'Pago confirmado exitosamente',
+                    'venta_id': venta.id,
+                    'estado': venta.estado,
+                })
+            else:
+                return response.Response(
+                    {'error': f'El pago no se completó. Estado: {payment_intent.status}'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+        except stripe.error.StripeError as e:
+            return response.Response(
+                {"detail": f"Error de Stripe: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        except Exception as e:
+            return response.Response(
+                {'error': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

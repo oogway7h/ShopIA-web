@@ -12,7 +12,23 @@ from django.db import models
 from django.db.models import Q
 
 from .models import Usuario, Rol, Bitacora, Notificacion, NotificacionLeida
-from .serializers import *
+from .serializers import (
+    UsuarioReadSerializer,
+    UsuarioWriteSerializer,
+    RolSerializer,
+    PerfilClienteSerializer,
+    RegistroSerializer,
+    CambiarPasswordSerializer,
+    SolicitarRecuperacionSerializer,
+    ConfirmarRecuperacionSerializer,
+    BitacoraSerializer,
+    NotificacionReadSerializer,
+    NotificacionWriteSerializer,
+    NotificacionClienteSerializer,
+    NotificacionLeidaSerializer,
+    GuardarTokenFCMSerializer,
+)
+from .firebase_service import enviar_push_notifications_masivas
 
 
 # LOGIN usando correo + password => devuelve access / refresh y usuario
@@ -441,7 +457,7 @@ class NotificacionViewSet(viewsets.ModelViewSet):
         mas_leidas = Notificacion.objects.filter(
             fecha_creacion__gte=hace_30_dias
         ).annotate(
-            total_lecturas=models.Count('notificacion_leidas')
+            total_lecturas=models.Count('lecturas')
         ).order_by('-total_lecturas')[:5]
 
         return Response({
@@ -536,7 +552,7 @@ class NotificacionClienteViewSet(viewsets.ReadOnlyModelViewSet):
         ).filter(
             Q(fecha_fin__isnull=True) | Q(fecha_fin__gte=timezone.now())
         ).exclude(
-            notificacion_leidas__usuario=user
+            lecturas__usuario=user
         ).order_by('-fecha_creacion')
 
         serializer = self.get_serializer(no_leidas, many=True)
@@ -564,7 +580,7 @@ class NotificacionClienteViewSet(viewsets.ReadOnlyModelViewSet):
         ).filter(
             Q(fecha_fin__isnull=True) | Q(fecha_fin__gte=timezone.now())
         ).exclude(
-            notificacion_leidas__usuario=user
+            lecturas__usuario=user
         )
 
         # Crear registros de lectura en batch
@@ -599,6 +615,35 @@ class NotificacionLeidaViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = NotificacionLeida.objects.select_related('usuario', 'notificacion').all().order_by('-fecha_lectura')
     serializer_class = NotificacionLeidaSerializer
     permission_classes = [IsAuthenticated]
+
+# Endpoint para guardar token FCM
+class GuardarTokenFCMView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        """Guarda el token FCM del dispositivo del usuario"""
+        serializer = GuardarTokenFCMSerializer(data=request.data)
+        if serializer.is_valid():
+            token = serializer.validated_data['fcm_token']
+            usuario = request.user
+            
+            # Guardar token
+            usuario.fcm_token = token
+            usuario.fcm_token_actualizado = timezone.now()
+            usuario.save()
+            
+            registrar_bitacora(
+                usuario,
+                "TOKEN_FCM_GUARDADO",
+                f'Token FCM registrado desde {request.META.get("REMOTE_ADDR", "IP desconocida")}',
+                request
+            )
+            
+            return Response({
+                'detail': 'Token FCM guardado correctamente',
+                'token': token
+            })
+        return Response(serializer.errors, status=400)
 
 # Función helper para registrar en bitácora
 def registrar_bitacora(usuario, accion, descripcion="", request=None):

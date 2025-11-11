@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Usuario, Rol, Bitacora, Notificacion, NotificacionLeida
+from .firebase_service import enviar_push_notifications_masivas
 
 class RolSerializer(serializers.ModelSerializer):
     class Meta:
@@ -215,7 +216,36 @@ class NotificacionWriteSerializer(serializers.ModelSerializer):
             )
 
         notificacion.usuarios.set(usuarios)
+        
+        # 🆕 Enviar notificaciones push SOLO si plataforma='push' y estado=True
+        if notificacion.plataforma == 'push' and notificacion.estado:
+            self._enviar_notificaciones_push(notificacion, usuarios)
+        
         return notificacion
+
+    def _enviar_notificaciones_push(self, notificacion, usuarios):
+        """Envía notificaciones push a los usuarios con token FCM"""
+        # Obtener tokens FCM de usuarios activos
+        tokens = list(
+            usuarios.filter(fcm_token__isnull=False)
+            .exclude(fcm_token='')
+            .values_list('fcm_token', flat=True)
+        )
+        
+        if tokens:
+            resultado = enviar_push_notifications_masivas(
+                tokens=tokens,
+                titulo=notificacion.titulo,
+                descripcion=notificacion.descripcion,
+                data={
+                    'notificacion_id': str(notificacion.id),
+                    'tipo': notificacion.tipo,
+                }
+            )
+            
+            print(f"📱 Push notifications enviadas: {resultado}")
+        else:
+            print("⚠️ No hay usuarios con tokens FCM registrados")
 
     def update(self, instance, validated_data):
         usuarios_ids = validated_data.pop('usuarios_ids', None)
@@ -287,3 +317,7 @@ class NotificacionClienteSerializer(serializers.ModelSerializer):
             ).first()
             return lectura.fecha_lectura if lectura else None
         return None
+
+class GuardarTokenFCMSerializer(serializers.Serializer):
+    """Serializer para guardar el token FCM del dispositivo"""
+    fcm_token = serializers.CharField(max_length=255)

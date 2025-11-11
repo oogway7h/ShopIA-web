@@ -1,34 +1,57 @@
 import React, { useEffect, useState } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { clearAuth, getUser } from "../services/auth.js";
+import {
+  Users,
+  UserCog,
+  UserCheck,
+  Bell,
+  Layers,
+  Tag,
+  ShoppingBag,
+  CreditCard,
+  FileText,
+  BarChart2,
+  LogOut,
+  Store,
+  ClipboardList,
+  Menu
+} from "lucide-react";
 
 const menu = [
   {
     grupo: "Gestión de Usuarios",
-    icono: "👥",
+    icono: <Users className="w-5 h-5" />,
     opciones: [
-      { nombre: "Usuarios", ruta: "/dashboard/usuarios" },
-	  { nombre: "Clientes", ruta: "/dashboard/clientes" },
-      { nombre: "Roles", ruta: "/dashboard/usuarios/roles" },
-      { nombre: "Bitácora", ruta: "/dashboard/usuarios/bitacora" },
-      { nombre: "Notificaciones", ruta: "/dashboard/notificaciones" },
+      { nombre: "Usuarios", ruta: "/dashboard/usuarios", icono: <UserCog className="w-4 h-4" /> },
+      { nombre: "Clientes", ruta: "/dashboard/clientes", icono: <UserCheck className="w-4 h-4" /> },
+      { nombre: "Roles", ruta: "/dashboard/usuarios/roles", icono: <ClipboardList className="w-4 h-4" /> },
+      { nombre: "Bitácora", ruta: "/dashboard/usuarios/bitacora", icono: <FileText className="w-4 h-4" /> },
+      { nombre: "Notificaciones", ruta: "/dashboard/notificaciones", icono: <Bell className="w-4 h-4" /> },
     ],
   },
   {
-    grupo:"Gestion de Productos",
-    icono:"🧐",
-    opciones:[
-      {nombre:"Categorias", ruta:"categorias"},
-      {nombre:"Productos", ruta:"productos"},
+    grupo: "Gestión de Productos",
+    icono: <Layers className="w-5 h-5" />,
+    opciones: [
+      { nombre: "Categorias", ruta: "categorias", icono: <Tag className="w-4 h-4" /> },
+      { nombre: "Productos", ruta: "productos", icono: <ShoppingBag className="w-4 h-4" /> },
     ]
   },
-
   {
-    grupo:"Gestion de Ventas",
-    icono:"💰",
-    opciones:[
-      {nombre:"Pagos",ruta:"/dashboard/pagos"},
-      {nombre:"Ventas", ruta:"/dashboard/ventas"}
+    grupo: "Gestión de Ventas",
+    icono: <CreditCard className="w-5 h-5" />,
+    opciones: [
+      { nombre: "Pagos", ruta: "/dashboard/pagos", icono: <CreditCard className="w-4 h-4" /> },
+      { nombre: "Ventas", ruta: "/dashboard/ventas", icono: <BarChart2 className="w-4 h-4" /> }
+    ]
+  },
+  {
+    grupo: "Reportes",
+    icono: <BarChart2 className="w-5 h-5" />,
+    opciones: [
+      { nombre: "Reportes de ventas", ruta: "/dashboard/reportes/ventas", icono: <BarChart2 className="w-4 h-4" /> },
+      { nombre: "Reportes de clientes", ruta: "/dashboard/reportes/clientes", icono: <BarChart2 className="w-4 h-4" /> }
     ]
   },
 ];
@@ -37,7 +60,7 @@ export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [openGroup, setOpenGroup] = useState(null);
   const location = useLocation();
-  const user = getUser(); // se usa abajo
+  const user = getUser();
 
   // Cierra sidebar al cambiar de ruta en móvil
   useEffect(() => {
@@ -94,7 +117,7 @@ export default function AdminLayout() {
           </div>
 
           {/* Navegación */}
-          <nav className="flex-1 overflow-y-auto px-4 py-6">
+          <nav className="flex-1 overflow-y-auto px-4 py-6 sidebar-scroll">
             <ul className="space-y-2">
               <li>
                 <Link
@@ -105,7 +128,7 @@ export default function AdminLayout() {
                       : ""
                   }`}
                 >
-                  <span className="text-xl">📊</span>
+                  <BarChart2 className="w-5 h-5" />
                   <span>Dashboard</span>
                 </Link>
               </li>
@@ -120,7 +143,7 @@ export default function AdminLayout() {
                       aria-expanded={abierto}
                     >
                       <span className="flex items-center gap-3">
-                        <span className="text-xl">{grupo.icono}</span>
+                        {grupo.icono}
                         {grupo.grupo}
                       </span>
                       <span
@@ -137,12 +160,13 @@ export default function AdminLayout() {
                           <li key={op.ruta}>
                             <Link
                               to={op.ruta}
-                              className={`block px-4 py-2 rounded-lg hover:bg-white/10 text-sm transition-all duration-200 ${
+                              className={`flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-white/10 text-sm transition-all duration-200 ${
                                 location.pathname === op.ruta
                                   ? "bg-white/15 text-blue-100 font-medium"
                                   : "text-blue-200"
                               }`}
                             >
+                              {op.icono}
                               {op.nombre}
                             </Link>
                           </li>
@@ -162,13 +186,14 @@ export default function AdminLayout() {
               onClick={() => setSidebarOpen(false)}
               className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-pink-500 to-blue-600 hover:from-pink-600 hover:to-blue-700 text-white text-sm font-semibold py-3 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
             >
-              <span>🏪</span>
+              <Store className="w-5 h-5" />
               <span>Ver Tienda</span>
             </Link>
             <button
               onClick={handleLogout}
-              className="w-full px-4 py-3 rounded-xl text-sm font-medium bg-red-500/90 text-white hover:bg-red-600 transition-all duration-200 shadow-md hover:shadow-lg"
+              className="w-full px-4 py-3 rounded-xl text-sm font-medium bg-red-500/90 text-white hover:bg-red-600 transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2"
             >
+              <LogOut className="w-5 h-5" />
               Cerrar Sesión
             </button>
             <div className="text-[11px] text-blue-300 pt-1 text-center select-none">
@@ -195,10 +220,10 @@ export default function AdminLayout() {
             aria-label="Abrir menú"
             onClick={() => setSidebarOpen(true)}
           >
-            ☰
+            <Menu className="w-7 h-7" />
           </button>
           <div className="flex items-center gap-2">
-            <span className="text-xl">🛒</span>
+            <BarChart2 className="w-6 h-6 text-blue-600" />
             <span className="font-bold text-blue-800">Shopia Admin</span>
           </div>
           <div className="w-6" />
@@ -211,19 +236,19 @@ export default function AdminLayout() {
             {user && (
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <span>🏪</span>
+                  <Store className="w-4 h-4" />
                   <span>Panel de Administración</span>
                 </div>
                 <div className="flex flex-wrap items-center gap-3 text-sm">
                   <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white shadow-sm border">
-                    <span className="text-blue-600">👤</span>
+                    <Users className="w-4 h-4 text-blue-600" />
                     <span className="font-medium text-gray-700">
                       {user.nombre} {user.apellido}
                     </span>
                   </div>
                   {user.roles && user.roles.length > 0 && (
                     <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-sm">
-                      <span>🎯</span>
+                      <ClipboardList className="w-4 h-4" />
                       <span className="font-medium text-xs uppercase tracking-wide">
                         {user.roles[0].nombre}
                       </span>

@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.utils import timezone
 
 
 
@@ -21,7 +22,11 @@ class Venta(models.Model):
         related_name="ventas",
         verbose_name="Usuario"
     )
-    fecha = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de venta")
+    # CAMBIO: Ahora permite fecha manual o automática
+    fecha = models.DateTimeField(
+        default=timezone.now,  # Por defecto la fecha actual
+        verbose_name="Fecha de venta"
+    )
     
     monto_total = models.DecimalField(
         max_digits=10,

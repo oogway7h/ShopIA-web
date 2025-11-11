@@ -15,10 +15,11 @@ from datetime import timedelta
 from decouple import config
 import os
 import cloudinary
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
+load_dotenv(BASE_DIR / '.env')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -40,7 +41,7 @@ ALLOWED_HOSTS = [
     '*',  
 ]
 
-
+ALLOWED_HOSTS = ['*']
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -48,6 +49,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_extensions',
 
     # DRF + CORS
     'rest_framework',
@@ -59,7 +61,9 @@ INSTALLED_APPS = [
     # App
     'apps.usuarios',
     'apps.productos',
-    'apps.ventas'
+    'apps.ventas',
+    'apps.reportes',
+    'apps.predicciones',
 ]
 
 AUTH_USER_MODEL = 'usuarios.Usuario'
@@ -75,7 +79,8 @@ REST_FRAMEWORK = {
 
 # CORS (simple dev)
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",  
+    "http://localhost:5173",
+    "http://localhost:8000",  
     "http://127.0.0.1:5173",
     "http://localhost:3000",  
     config('FRONTEND_URL', default=''),
@@ -217,3 +222,9 @@ cloudinary.config(
 STRIPE_PUBLISHABLE_KEY = config('STRIPE_PUBLISHABLE_KEY')
 STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY')
 FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:5173')
+
+GOOGLE_CREDENTIALS_JSON = os.getenv('GOOGLE_CREDENTIALS_JSON')
+if not GOOGLE_CREDENTIALS_JSON:
+    print("⚠️ ADVERTENCIA: GOOGLE_CREDENTIALS_JSON no está definido en .env")
+    
+

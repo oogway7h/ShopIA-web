@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { api } from "../../../services/apiClient.js";
 import { useNavigate } from "react-router-dom";
 import ProductoCard from "../../../components/ecommerce/ProductoCard";
+import VoiceCommandButton from "../../../pages/dashboard/Reportes/reconocimieto_voz.jsx"
 
 export default function CatalogoProductos() {
   const [catalogo, setCatalogo] = useState([]);
@@ -127,6 +128,15 @@ export default function CatalogoProductos() {
             )}
           </section>
         ))}
+      </div>
+      
+      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-center gap-2">        
+          <VoiceCommandButton
+            variant='fab'
+        />
+        <span className="px-3 py-1.5 bg-white text-gray-700 text-xs font-semibold rounded-lg shadow-lg border border-gray-200 hidden sm:block">          
+          Usa comandos de voz para buscar productos
+        </span>
       </div>
     </div>
   );

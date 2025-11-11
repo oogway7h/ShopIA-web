@@ -24,4 +24,6 @@ urlpatterns = [
     
     # CRUD y otros endpoints
     path('cuenta/', include(router.urls)),
+    # Guardar token FCM
+    path('cuenta/guardar-token-fcm/', GuardarTokenFCMView.as_view(), name='guardar_token_fcm'),
 ]

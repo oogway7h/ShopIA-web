@@ -4,6 +4,7 @@ import { createBrowserRouter } from "react-router-dom";
 import MainLayout from "../layouts/ecommerceLayout.jsx";
 import AdminLayout from "../layouts/AdminLayout.jsx";
 import ClienteLayout from "../layouts/clienteLayout.jsx";
+import LayoutWithOfflineDetector from "../components/layouts/LayoutWithOfflineDetector.jsx";
 
 import Home from "../pages/Home.jsx";
 import Login from "../pages/Login.jsx";
@@ -36,6 +37,7 @@ import CategoriaProductos from "../pages/ecommerce/tienda/CategoriaProductos.jsx
 import Checkout from "../pages/ecommerce/tienda/Checkout.jsx";
 import ResumenVenta from "../pages/ecommerce/tienda/ResumenVenta.jsx";
 import CompraExitosa from "../pages/ecommerce/tienda/CompraExitosa.jsx";
+import BusquedaProductosPage from "../pages/ecommerce/tienda/CatalogoPorPrecios.jsx";
 
 import ErrorBoundaryPage from "../pages/ErrorBoundaryPage.jsx";
 import ProtectedRoute from "../components/routing/ProtectedRoute.jsx";
@@ -54,12 +56,18 @@ import MetodoPagoEditPage from "../pages/dashboard/pagos/edit.jsx";
 
 import ErrorBoundary from "../components/ErrorBoundary";
 
+import PaginaReportesClientes from "../pages/dashboard/Reportes/indexReportesClientes.jsx";
+import PaginaReportesVentas from "../pages/dashboard/Reportes/indexReportesVentas.jsx";
+import DashboardReportePage from "../components/dashboard/DashboardReportePage.jsx";
+
 export const router = createBrowserRouter([
   {
     path: "/",
     element: (
       <ErrorBoundary>
-        <MainLayout />
+        <LayoutWithOfflineDetector>
+          <MainLayout />
+        </LayoutWithOfflineDetector>
       </ErrorBoundary>
     ),
     children: [
@@ -67,14 +75,17 @@ export const router = createBrowserRouter([
       { path: "login", element: <Login /> },
       { path: "register", element: <Register /> },
       { path: "categoria/:id", element: <CategoriaProductos /> },
-      { path: "producto/:id", element: <ProductoDetallePage /> }
+      { path: "producto/:id", element: <ProductoDetallePage /> },
+      { path: "catalogo/buscar", element: <BusquedaProductosPage /> }
     ],
   },
   {
     path: "/dashboard",
     element: (
       <ProtectedRoute roles={["admin", "administrador"]}>
-        <AdminLayout />
+        <LayoutWithOfflineDetector>
+          <AdminLayout />
+        </LayoutWithOfflineDetector>
       </ProtectedRoute>
     ),
     errorElement: <ErrorBoundaryPage />,
@@ -93,23 +104,28 @@ export const router = createBrowserRouter([
       { path: "clientes", element: <ClientesPage /> },
       { path: "clientes/create", element: <ClienteCreatePage /> },
       { path: "clientes/edit/:id", element: <ClienteEditPage /> },
-      {path: "categorias/create",element:<CategoriaCreatePage/>},
-      {path: "categorias/edit/:id",element:<CategoriaEditPage/>},
-      {path:"categorias",element:<CategoriasIndexPage/>},
-      {path:"productos",element:<ProductosIndexPage/>},
-      {path:"productos/create",element:<ProductoCreatePage/>},
-      {path: "productos/edit/:id", element:<ProductoEditPage/>},
-      {path:"pagos",element:<MetodosPagoIndexPage/>},
-      {path:"pagos/create",element:<MetodoPagoCreatePage/>},
-      {path:"pagos/edit/:id",element:<MetodoPagoEditPage/>},
-      { path: "ventas", element: <VentaLogPage /> }
+      { path: "categorias/create", element: <CategoriaCreatePage /> },
+      { path: "categorias/edit/:id", element: <CategoriaEditPage /> },
+      { path: "categorias", element: <CategoriasIndexPage /> },
+      { path: "productos", element: <ProductosIndexPage /> },
+      { path: "productos/create", element: <ProductoCreatePage /> },
+      { path: "productos/edit/:id", element: <ProductoEditPage /> },
+      { path: "pagos", element: <MetodosPagoIndexPage /> },
+      { path: "pagos/create", element: <MetodoPagoCreatePage /> },
+      { path: "pagos/edit/:id", element: <MetodoPagoEditPage /> },
+      { path: "ventas", element: <VentaLogPage /> },
+      { path: "reportes/ventas", element: <PaginaReportesVentas /> },
+      { path: "reportes/clientes", element: <PaginaReportesClientes /> },
+      { path: "reportes/dash/:reporteId", element: <DashboardReportePage /> },
     ],
   },
   {
     path: "/cliente",
     element: (
       <ProtectedRoute roles={["cliente"]}>
-        <ClienteLayout />
+        <LayoutWithOfflineDetector>
+          <ClienteLayout />
+        </LayoutWithOfflineDetector>
       </ProtectedRoute>
     ),
     errorElement: <ErrorBoundaryPage />,
@@ -124,9 +140,20 @@ export const router = createBrowserRouter([
   },
   {
     path: "/recuperar-password",
-    element: <RecuperarPassword />,
+    element: (
+      <LayoutWithOfflineDetector>
+        <RecuperarPassword />
+      </LayoutWithOfflineDetector>
+    ),
   },
-  { path: "*", element: <ErrorBoundaryPage /> },
+  { 
+    path: "*", 
+    element: (
+      <LayoutWithOfflineDetector>
+        <ErrorBoundaryPage />
+      </LayoutWithOfflineDetector>
+    ) 
+  },
 ]);
 
 export default router;

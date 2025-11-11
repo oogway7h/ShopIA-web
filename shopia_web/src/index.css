@@ -43,3 +43,25 @@
 .animate-fade-in {
   animation: fade-in 0.3s;
 }
+
+.sidebar-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #9a9cf3 #0052a4; /* thumb color, track color */
+}
+
+.sidebar-scroll::-webkit-scrollbar {
+  width: 8px;
+  background: #027ffc; /* track color: slate-100 */
+  border-radius: 8px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #6366f1 60%, #818cf8 100%);
+  border-radius: 8px;
+  min-height: 40px;
+  border: 2px solid #0482ff; /* separa el thumb del borde */
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #818cf8 60%, #6366f1 100%);
+}

@@ -25,6 +25,7 @@ class Producto(models.Model):
     descripcion = models.TextField(help_text="Descripción detallada del producto")
     precio = models.DecimalField(max_digits=10, decimal_places=2, help_text="Precio del producto")
     stock = models.PositiveIntegerField(default=0, help_text="Cantidad en inventario")
+    estado = models.BooleanField(default=True, help_text="Indica si el producto está activo o inactivo")
     #si se borra una categoría, se protegen los productos asociados para no borrarlos en cascada.
     categoria = models.ForeignKey(
         Categoria,

@@ -47,4 +47,24 @@ pip install -r requirements.txt
 
 ```bash
     python manage.py runserver
+
+```bash
+python manage.py shell
+
+from apps.ventas.models import Venta, DetalleVenta, Pago
+from apps.predicciones.models import PrediccionVenta, CrecimientoCategoria, ProductoMasVendido
+
+DetalleVenta.objects.all().delete()
+Pago.objects.all().delete()
+Venta.objects.all().delete()
+PrediccionVenta.objects.all().delete()
+CrecimientoCategoria.objects.all().delete()
+ProductoMasVendido.objects.all().delete()
+print("✅ Datos eliminados")
+exit()
+```
+
+```bash
+python scripts/generar_ventas_sinteticas.py
+python apps/predicciones/ml_service.py
 ```
